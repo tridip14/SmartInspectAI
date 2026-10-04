@@ -1,0 +1,41 @@
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# YOLO models
+*.pt
+*.pth
+*.onnx
+*.weights
+
+# YOLO results
+runs/
+
+# Test files
+test.png
+test.jpg
+test.jpeg
+*.mp4
+*.avi
+*.mov
+
+# Environment / secrets
+.env
+.env.*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# VS Code
+.vscode/
+
+# Temporary files
+*.tmp
+*.temp

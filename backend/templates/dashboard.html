@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>DoSJE Smart Inspection Dashboard</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            color: #222;
+        }
+
+        header {
+            background: #172554;
+            color: white;
+            padding: 22px 30px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        header p {
+            margin: 6px 0 0;
+            color: #dbeafe;
+        }
+
+        .container {
+            padding: 25px;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            margin: 0;
+            color: #555;
+            font-size: 15px;
+        }
+
+        .number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #172554;
+        }
+
+        .section {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+
+        .section h2 {
+            margin-top: 0;
+            color: #172554;
+        }
+
+        .alert-box {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 6px solid;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            border-left-color: #dc2626;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            border-left-color: #d97706;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            border-left-color: #16a34a;
+        }
+
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th {
+            background: #172554;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .status {
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .anomaly {
+            color: #b91c1c;
+            font-weight: bold;
+        }
+
+        .normal {
+            color: #15803d;
+            font-weight: bold;
+        }
+
+        .loading {
+            color: #666;
+            padding: 10px 0;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+            font-size: 13px;
+        }
+
+        @media (max-width: 900px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>DoSJE Smart Inspection System</h1>
+    <p>AI-Powered Centralized Monitoring & Surprise Inspection Dashboard</p>
+</header>
+
+<div class="container">
+
+    <!-- Statistics -->
+    <div class="stats">
+
+        <div class="card">
+            <h3>Total Projects</h3>
+            <div class="number" id="totalProjects">0</div>
+        </div>
+
+        <div class="card">
+            <h3>Total Inspectors</h3>
+            <div class="number" id="totalInspectors">0</div>
+        </div>
+
+        <div class="card">
+            <h3>Total Inspections</h3>
+            <div class="number" id="totalInspections">0</div>
+        </div>
+
+        <div class="card">
+            <h3>Completed Inspections</h3>
+            <div class="number" id="completedInspections">0</div>
+        </div>
+
+    </div>
+
+
+    <!-- AI Alerts -->
+    <div class="section">
+
+        <h2>🚨 AI Alerts</h2>
+
+        <div id="alertsContainer">
+            <div class="loading">
+                Checking inspection data for anomalies...
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Inspection Monitoring -->
+    <div class="section">
+
+        <h2>Inspection Monitoring</h2>
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Project</th>
+                        <th>Location</th>
+                        <th>Inspector</th>
+                        <th>Status</th>
+                        <th>GPS</th>
+                        <th>Evidence</th>
+                        <th>AI Result</th>
+                    </tr>
+                </thead>
+
+                <tbody id="inspectionTable">
+
+                    <tr>
+                        <td colspan="8" class="loading">
+                            Loading inspection data...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- System Information -->
+    <div class="section">
+
+        <h2>System Status</h2>
+
+        <p>
+            <strong>Backend:</strong>
+            <span id="backendStatus">Checking...</span>
+        </p>
+
+        <p>
+            <strong>AI Monitoring:</strong>
+            Active
+        </p>
+
+        <p>
+            <strong>Inspection Monitoring:</strong>
+            Active
+        </p>
+
+    </div>
+
+</div>
+
+
+<div class="footer">
+    DoSJE Smart Inspection System | AI-Powered Monitoring Platform
+</div>
+
+
+<script>
+
+    const API_BASE = "";
+
+
+    // ------------------------------------
+    // Load Projects
+    // ------------------------------------
+
+    async function loadProjects() {
+
+        try {
+
+            const response = await fetch(
+                API_BASE + "/projects"
+            );
+
+            const projects = await response.json();
+
+            document.getElementById(
+                "totalProjects"
+            ).textContent = projects.length;
+
+        } catch (error) {
+
+            console.error(
+                "Project loading error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    // ------------------------------------
+    // Load Inspectors
+    // ------------------------------------
+
+    async function loadInspectors() {
+
+        try {
+
+            const response = await fetch(
+                API_BASE + "/inspectors"
+            );
+
+            const inspectors = await response.json();
+
+            document.getElementById(
+                "totalInspectors"
+            ).textContent = inspectors.length;
+
+        } catch (error) {
+
+            console.error(
+                "Inspector loading error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    // ------------------------------------
+    // Load Inspections
+    // ------------------------------------
+
+    async function loadInspections() {
+
+        try {
+
+            const response = await fetch(
+                API_BASE + "/inspections"
+            );
+
+            const inspections =
+                await response.json();
+
+
+            document.getElementById(
+                "totalInspections"
+            ).textContent =
+                inspections.length;
+
+
+            // Count completed inspections
+
+            const completed =
+                inspections.filter(
+                    inspection =>
+                        inspection.status === "Completed"
+                ).length;
+
+
+            document.getElementById(
+                "completedInspections"
+            ).textContent =
+                completed;
+
+
+            // Create table
+
+            const table =
+                document.getElementById(
+                    "inspectionTable"
+                );
+
+
+            table.innerHTML = "";
+
+
+            if (inspections.length === 0) {
+
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="8">
+                            No inspections found.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+
+            inspections.forEach(
+                inspection => {
+
+                    const row =
+                        document.createElement(
+                            "tr"
+                        );
+
+
+                    let statusClass =
+                        inspection.status === "Completed"
+                            ? "completed"
+                            : "pending";
+
+
+                    let aiResult =
+                        inspection.anomaly_result
+                            || "Pending AI analysis";
+
+
+                    let aiClass =
+                        getAIClass(aiResult);
+
+
+                    row.innerHTML = `
+
+                        <td>
+                            ${inspection.inspection_id}
+                        </td>
+
+                        <td>
+                            ${inspection.project}
+                        </td>
+
+                        <td>
+                            ${inspection.location}
+                        </td>
+
+                        <td>
+                            ${inspection.inspector}
+                        </td>
+
+                        <td>
+                            <span class="status ${statusClass}">
+                                ${inspection.status}
+                            </span>
+                        </td>
+
+                        <td>
+                            ${inspection.latitude || "-"},
+                            ${inspection.longitude || "-"}
+                        </td>
+
+                        <td>
+                            ${inspection.evidence || "-"}
+                        </td>
+
+                        <td class="${aiClass}">
+                            ${aiResult}
+                        </td>
+
+                    `;
+
+
+                    table.appendChild(row);
+
+                }
+            );
+
+
+            // Update AI alerts
+
+            generateAlerts(inspections);
+
+
+        } catch (error) {
+
+            console.error(
+                "Inspection loading error:",
+                error
+            );
+
+            document.getElementById(
+                "inspectionTable"
+            ).innerHTML = `
+
+                <tr>
+                    <td colspan="8">
+                        Failed to load inspection data.
+                    </td>
+                </tr>
+
+            `;
+
+            document.getElementById(
+                "alertsContainer"
+            ).innerHTML = `
+
+                <div class="alert-box alert-danger">
+
+                    <div class="alert-title">
+                        Backend Connection Error
+                    </div>
+
+                    Unable to load inspection data.
+
+                </div>
+
+            `;
+
+        }
+
+    }
+
+
+    // ------------------------------------
+    // AI Result Classification
+    // ------------------------------------
+
+    function getAIClass(result) {
+
+        if (!result) {
+            return "";
+        }
+
+
+        const text =
+            result.toLowerCase();
+
+
+        if (
+            text.includes("anomaly") &&
+            !text.includes("no anomaly")
+        ) {
+
+            return "anomaly";
+
+        }
+
+
+        if (
+            text.includes("mismatch") ||
+            text.includes("suspicious") ||
+            text.includes("risk")
+        ) {
+
+            return "anomaly";
+
+        }
+
+
+        if (
+            text.includes("no anomaly") ||
+            text.includes("consistent")
+        ) {
+
+            return "normal";
+
+        }
+
+
+        return "";
+
+    }
+
+
+    // ------------------------------------
+    // Generate AI Alerts
+    // ------------------------------------
+
+    function generateAlerts(inspections) {
+
+        const container =
+            document.getElementById(
+                "alertsContainer"
+            );
+
+
+        container.innerHTML = "";
+
+
+        let alerts = [];
+
+
+        inspections.forEach(
+            inspection => {
+
+                const result =
+                    (
+                        inspection.anomaly_result
+                        || ""
+                    ).toLowerCase();
+
+
+                // Anomaly detection
+
+                if (
+                    result.includes("anomaly") &&
+                    !result.includes("no anomaly")
+                ) {
+
+                    alerts.push({
+
+                        type: "danger",
+
+                        title:
+                            "AI Anomaly Detected",
+
+                        message:
+                            `Inspection ${inspection.inspection_id} `
+                            +
+                            `at ${inspection.project} `
+                            +
+                            `has an AI-detected anomaly.`
+
+                    });
+
+                }
+
+
+                // Attendance mismatch
+
+                if (
+                    result.includes("mismatch")
+                ) {
+
+                    alerts.push({
+
+                        type: "warning",
+
+                        title:
+                            "Attendance Mismatch",
+
+                        message:
+                            `Inspection ${inspection.inspection_id} `
+                            +
+                            `has an attendance mismatch.`
+
+                    });
+
+                }
+
+
+                // Pending AI analysis
+
+                if (
+                    result === "" ||
+                    result.includes(
+                        "pending ai analysis"
+                    )
+                ) {
+
+                    alerts.push({
+
+                        type: "warning",
+
+                        title:
+                            "AI Analysis Pending",
+
+                        message:
+                            `Inspection ${inspection.inspection_id} `
+                            +
+                            `is waiting for AI analysis.`
+
+                    });
+
+                }
+
+            }
+        );
+
+
+        // No alerts
+
+        if (alerts.length === 0) {
+
+            container.innerHTML = `
+
+                <div class="alert-box alert-success">
+
+                    <div class="alert-title">
+                        No Active AI Alerts
+                    </div>
+
+                    All current inspection results
+                    appear normal.
+
+                </div>
+
+            `;
+
+            return;
+        }
+
+
+        // Display alerts
+
+        alerts.forEach(
+            alert => {
+
+                const box =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                const alertClass =
+                    alert.type === "danger"
+                        ? "alert-danger"
+                        : "alert-warning";
+
+
+                box.className =
+                    `alert-box ${alertClass}`;
+
+
+                box.innerHTML = `
+
+                    <div class="alert-title">
+                        ${alert.title}
+                    </div>
+
+                    <div>
+                        ${alert.message}
+                    </div>
+
+                `;
+
+
+                container.appendChild(box);
+
+            }
+        );
+
+    }
+
+
+    // ------------------------------------
+    // Backend Health
+    // ------------------------------------
+
+    async function checkBackend() {
+
+        try {
+
+            const response =
+                await fetch(
+                    API_BASE + "/health"
+                );
+
+
+            if (response.ok) {
+
+                document.getElementById(
+                    "backendStatus"
+                ).textContent =
+                    "Healthy";
+
+            } else {
+
+                document.getElementById(
+                    "backendStatus"
+                ).textContent =
+                    "Unavailable";
+
+            }
+
+        } catch (error) {
+
+            document.getElementById(
+                "backendStatus"
+            ).textContent =
+                "Offline";
+
+        }
+
+    }
+
+
+    // ------------------------------------
+    // Load Everything
+    // ------------------------------------
+
+    async function loadDashboard() {
+
+        await loadProjects();
+
+        await loadInspectors();
+
+        await loadInspections();
+
+        await checkBackend();
+
+    }
+
+
+    // Initial load
+
+    loadDashboard();
+
+
+    // Refresh every 10 seconds
+
+    setInterval(
+        loadDashboard,
+        10000
+    );
+
+</script>
+
+</body>
+</html>
