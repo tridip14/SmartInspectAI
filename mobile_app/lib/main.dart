@@ -1,101 +1,1253 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:math';
 
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 
-const String backendUrl = 'http://127.0.0.1:8000';
+// ============================================================
+// SMARTINSPECTAI DESIGN SYSTEM
+// UI-only layer: business logic, APIs and workflows remain intact.
+// ============================================================
 
-void main() {
-  runApp(const DosjeApp());
+class AppDesign {
+  static const primary = Color(0xFF3657E8);
+  static const primaryDark = Color(0xFF2339A6);
+  static const accent = Color(0xFF06B6D4);
+  static const ink = Color(0xFF101828);
+  static const muted = Color(0xFF667085);
+  static const canvas = Color(0xFFF6F8FC);
+  static const surface = Color(0xFFFFFFFF);
+  static const success = Color(0xFF12B76A);
+  static const warning = Color(0xFFF79009);
+  static const danger = Color(0xFFF04438);
+
+  static ThemeData theme() {
+    final scheme =
+        ColorScheme.fromSeed(
+          seedColor: primary,
+          brightness: Brightness.light,
+        ).copyWith(
+          primary: primary,
+          onPrimary: Colors.white,
+          secondary: accent,
+          onSecondary: Colors.white,
+          surface: surface,
+          onSurface: ink,
+          error: danger,
+        );
+
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: canvas,
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      splashFactory: InkSparkle.splashFactory,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: canvas,
+        foregroundColor: ink,
+        elevation: 0,
+        centerTitle: false,
+        titleTextStyle: TextStyle(
+          color: ink,
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.3,
+        ),
+      ),
+      cardTheme: CardThemeData(
+        color: surface,
+        surfaceTintColor: Colors.white,
+        elevation: 1,
+        shadowColor: Color(0x180F172A),
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: Color(0xFFE7EAF1)),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 17,
+        ),
+        labelStyle: const TextStyle(color: muted, fontWeight: FontWeight.w600),
+        hintStyle: const TextStyle(color: Color(0xFF98A2B3)),
+        prefixIconColor: primary,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE4E7EC)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE4E7EC)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: primary, width: 1.6),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(0, 52),
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primary,
+          minimumSize: const Size(0, 50),
+          side: const BorderSide(color: Color(0xFFD0D5DD)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        height: 72,
+        backgroundColor: Colors.white,
+        indicatorColor: const Color(0xFFE8EDFF),
+        labelTextStyle: const WidgetStatePropertyAll(
+          TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+        ),
+      ),
+      navigationRailTheme: const NavigationRailThemeData(
+        backgroundColor: Colors.white,
+        selectedIconTheme: IconThemeData(color: primary),
+        unselectedIconTheme: IconThemeData(color: muted),
+        selectedLabelTextStyle: TextStyle(
+          color: primary,
+          fontWeight: FontWeight.w800,
+        ),
+        unselectedLabelTextStyle: TextStyle(
+          color: muted,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: const Color(0xFFF2F4F7),
+        selectedColor: const Color(0xFFE8EDFF),
+        side: BorderSide.none,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+        labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        backgroundColor: ink,
+      ),
+      dividerTheme: const DividerThemeData(
+        color: Color(0xFFE7EAF1),
+        thickness: 1,
+      ),
+    );
+  }
 }
 
-class DosjeApp extends StatelessWidget {
-  const DosjeApp({super.key});
+class SectionTitle extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  const SectionTitle({super.key, required this.title, this.subtitle});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'DoSJE Smart Inspection System',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.4,
+          ),
+        ),
+        if (subtitle != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            subtitle!,
+            style: const TextStyle(color: AppDesign.muted, fontSize: 13),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class StatusPill extends StatelessWidget {
+  final String label;
+  final bool positive;
+  final bool warning;
+  const StatusPill({
+    super.key,
+    required this.label,
+    this.positive = false,
+    this.warning = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = positive
+        ? AppDesign.success
+        : warning
+        ? AppDesign.warning
+        : AppDesign.primary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .10),
+        borderRadius: BorderRadius.circular(999),
       ),
-      home: const HomeScreen(),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
     );
   }
 }
 
 // ============================================================
-// HOME SCREEN
+// APP CONFIGURATION
 // ============================================================
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class AppConfig {
+  // Android Emulator
+  static const String apiBaseUrl = 'http://10.0.2.2:8000';
+
+  // For Flutter Web/Desktop use:
+  // static const String apiBaseUrl = 'http://127.0.0.1:8000';
+
+  // For a physical Android phone, use your computer's LAN IP:
+  // static const String apiBaseUrl = 'http://192.168.x.x:8000';
+}
+
+// ============================================================
+// DATA MODELS
+// ============================================================
+
+class Project {
+  final int id;
+  final String name;
+  final String location;
+  final String status;
+  final String inspector;
+
+  Project({
+    required this.id,
+    required this.name,
+    required this.location,
+    required this.status,
+    required this.inspector,
+  });
+
+  factory Project.fromJson(Map<String, dynamic> json) {
+    return Project(
+      id: json['id'] ?? 0,
+      name: json['name'] ?? 'Unknown Project',
+      location: json['location'] ?? 'Unknown Location',
+      status: json['status'] ?? 'Pending',
+      inspector: json['inspector'] ?? 'Not Assigned',
+    );
+  }
+}
+
+class InspectionReport {
+  final String projectName;
+  final String location;
+  final String inspectionDate;
+  final bool gpsVerified;
+  final bool evidenceCaptured;
+  final bool cctvVerified;
+  final bool staffVerified;
+  final int attendance;
+  final String aiResult;
+  final String compliance;
+  final String outcome;
+
+  InspectionReport({
+    required this.projectName,
+    required this.location,
+    required this.inspectionDate,
+    required this.gpsVerified,
+    required this.evidenceCaptured,
+    required this.cctvVerified,
+    required this.staffVerified,
+    required this.attendance,
+    required this.aiResult,
+    required this.compliance,
+    required this.outcome,
+  });
+}
+
+class AlertItem {
+  final String title;
+  final String message;
+  final String severity;
+  final String time;
+
+  AlertItem({
+    required this.title,
+    required this.message,
+    required this.severity,
+    required this.time,
+  });
+}
+
+// ============================================================
+// GLOBAL APP STATE
+// ============================================================
+
+class AppState {
+  static List<Project> projects = [
+    Project(
+      id: 1,
+      name: 'Sunrise Welfare Institute',
+      location: 'Kolkata',
+      status: 'Active',
+      inspector: 'Inspector A',
+    ),
+    Project(
+      id: 2,
+      name: 'Hope Development Centre',
+      location: 'Kolkata',
+      status: 'Active',
+      inspector: 'Inspector B',
+    ),
+    Project(
+      id: 3,
+      name: 'Social Welfare Foundation',
+      location: 'Howrah',
+      status: 'Pending',
+      inspector: 'Inspector C',
+    ),
+    Project(
+      id: 4,
+      name: 'Community Support Centre',
+      location: 'Siliguri',
+      status: 'Active',
+      inspector: 'Inspector D',
+    ),
+  ];
+
+  static List<InspectionReport> reports = [
+    InspectionReport(
+      projectName: 'Sunrise Welfare Institute',
+      location: 'Kolkata',
+      inspectionDate: '05 Oct 2026',
+      gpsVerified: true,
+      evidenceCaptured: true,
+      cctvVerified: true,
+      staffVerified: true,
+      attendance: 94,
+      aiResult: 'No major anomaly detected',
+      compliance: 'Compliant',
+      outcome: 'Inspection completed successfully',
+    ),
+    InspectionReport(
+      projectName: 'Hope Development Centre',
+      location: 'Kolkata',
+      inspectionDate: '04 Oct 2026',
+      gpsVerified: true,
+      evidenceCaptured: true,
+      cctvVerified: true,
+      staffVerified: true,
+      attendance: 88,
+      aiResult: 'Minor attendance variation detected',
+      compliance: 'Under Review',
+      outcome: 'Follow-up recommended',
+    ),
+  ];
+
+  static List<AlertItem> alerts = [
+    AlertItem(
+      title: 'Attendance Alert',
+      message: 'Attendance below expected threshold.',
+      severity: 'High',
+      time: '10 min ago',
+    ),
+    AlertItem(
+      title: 'Inspection Due',
+      message: 'Surprise inspection pending.',
+      severity: 'Medium',
+      time: '25 min ago',
+    ),
+    AlertItem(
+      title: 'CCTV Status',
+      message: 'CCTV connection requires verification.',
+      severity: 'Medium',
+      time: '1 hour ago',
+    ),
+    AlertItem(
+      title: 'AI Analysis',
+      message: 'Inspection analysis completed.',
+      severity: 'Low',
+      time: '2 hours ago',
+    ),
+  ];
+}
+
+// ============================================================
+// MAIN
+// ============================================================
+
+void main() {
+  runApp(const SmartInspectAI());
+}
+
+// ============================================================
+// ROOT APP
+// ============================================================
+
+class SmartInspectAI extends StatelessWidget {
+  const SmartInspectAI({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'DoSJE SmartInspectAI',
+      debugShowCheckedModeBanner: false,
+      theme: AppDesign.theme(),
+      home: const LoginScreen(),
+    );
+  }
+}
+
+// ============================================================
+// LOGIN SCREEN
+// ============================================================
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController userController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  bool obscurePassword = true;
+  bool loading = false;
+
+  @override
+  void dispose() {
+    userController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> login() async {
+    final userId = userController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (userId.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter User ID and Password')),
+      );
+      return;
+    }
+
+    setState(() => loading = true);
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+    setState(() => loading = false);
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const MainNavigation()),
+    );
+  }
+
+  Widget _brandPanel() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppDesign.primaryDark, AppDesign.primary, AppDesign.accent],
+        ),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(44),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 62,
+                height: 62,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: .16),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: .24),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.account_balance_rounded,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 28),
+              const Text(
+                'SmartInspectAI',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 38,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -1.2,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Government smart monitoring, field inspection and AI-assisted analytics.',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: .84),
+                  fontSize: 16,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 34),
+              const _LoginFeature(
+                icon: Icons.location_on_rounded,
+                text: 'GPS verified field inspections',
+              ),
+              const _LoginFeature(
+                icon: Icons.auto_awesome_rounded,
+                text: 'AI-powered anomaly analysis',
+              ),
+              const _LoginFeature(
+                icon: Icons.videocam_rounded,
+                text: 'CCTV & stakeholder connectivity',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final wide = constraints.maxWidth >= 900;
+          final form = Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(wide ? 48 : 24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 460),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(30),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFE8EDFF),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Icon(
+                                Icons.account_balance_rounded,
+                                color: AppDesign.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            const Expanded(
+                              child: Text(
+                                'Secure Officer Login',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Access your SmartInspectAI monitoring workspace.',
+                          style: TextStyle(color: AppDesign.muted, height: 1.4),
+                        ),
+                        const SizedBox(height: 28),
+                        TextField(
+                          controller: userController,
+                          decoration: const InputDecoration(
+                            labelText: 'User ID',
+                            prefixIcon: Icon(Icons.person_outline_rounded),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        TextField(
+                          controller: passwordController,
+                          obscureText: obscurePassword,
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            prefixIcon: const Icon(Icons.lock_outline_rounded),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                obscurePassword
+                                    ? Icons.visibility_rounded
+                                    : Icons.visibility_off_rounded,
+                              ),
+                              onPressed: () => setState(
+                                () => obscurePassword = !obscurePassword,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 22),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: loading ? null : login,
+                            icon: loading
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(Icons.login_rounded),
+                            label: Text(
+                              loading ? 'AUTHENTICATING...' : 'SIGN IN',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        const Center(
+                          child: Text(
+                            'Demo Login • Secure monitoring workspace',
+                            style: TextStyle(
+                              color: AppDesign.muted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+          if (!wide) return form;
+          return Row(
+            children: [
+              Expanded(flex: 5, child: _brandPanel()),
+              Expanded(flex: 6, child: form),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _LoginFeature extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _LoginFeature({required this.icon, required this.text});
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 15),
+    child: Row(
+      children: [
+        Icon(icon, color: Colors.white, size: 19),
+        const SizedBox(width: 12),
+        Text(
+          text,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+// ============================================================
+// MAIN NAVIGATION
+// ============================================================
+
+class MainNavigation extends StatefulWidget {
+  const MainNavigation({super.key});
+
+  @override
+  State<MainNavigation> createState() => _MainNavigationState();
+}
+
+class _MainNavigationState extends State<MainNavigation> {
+  int selectedIndex = 0;
+
+  final List<Widget> screens = const [
+    DashboardScreen(),
+    ProjectsScreen(),
+    InspectionsScreen(),
+    AlertsScreen(),
+    ProfileScreen(),
+  ];
+
+  static const destinations = <NavigationDestination>[
+    NavigationDestination(
+      icon: Icon(Icons.dashboard_outlined),
+      selectedIcon: Icon(Icons.dashboard_rounded),
+      label: 'Dashboard',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.business_outlined),
+      selectedIcon: Icon(Icons.business_rounded),
+      label: 'Projects',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.fact_check_outlined),
+      selectedIcon: Icon(Icons.fact_check_rounded),
+      label: 'Inspections',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.notifications_outlined),
+      selectedIcon: Icon(Icons.notifications_rounded),
+      label: 'Alerts',
+    ),
+    NavigationDestination(
+      icon: Icon(Icons.person_outline_rounded),
+      selectedIcon: Icon(Icons.person_rounded),
+      label: 'Profile',
+    ),
+  ];
+
+  static const railDestinations = <NavigationRailDestination>[
+    NavigationRailDestination(
+      icon: Icon(Icons.dashboard_outlined),
+      selectedIcon: Icon(Icons.dashboard_rounded),
+      label: Text('Dashboard'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.business_outlined),
+      selectedIcon: Icon(Icons.business_rounded),
+      label: Text('Projects'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.fact_check_outlined),
+      selectedIcon: Icon(Icons.fact_check_rounded),
+      label: Text('Inspections'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.notifications_outlined),
+      selectedIcon: Icon(Icons.notifications_rounded),
+      label: Text('Alerts'),
+    ),
+    NavigationRailDestination(
+      icon: Icon(Icons.person_outline_rounded),
+      selectedIcon: Icon(Icons.person_rounded),
+      label: Text('Profile'),
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 900;
+        if (!wide) {
+          return Scaffold(
+            body: screens[selectedIndex],
+            bottomNavigationBar: NavigationBar(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (index) =>
+                  setState(() => selectedIndex = index),
+              destinations: destinations,
+            ),
+          );
+        }
+        return Scaffold(
+          body: Row(
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(right: BorderSide(color: Color(0xFFE7EAF1))),
+                ),
+                child: NavigationRail(
+                  extended: constraints.maxWidth >= 1180,
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: (index) =>
+                      setState(() => selectedIndex = index),
+                  leading: Padding(
+                    padding: const EdgeInsets.only(top: 18, bottom: 28),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8EDFF),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.account_balance_rounded,
+                            color: AppDesign.primary,
+                          ),
+                        ),
+                        if (constraints.maxWidth >= 1180) ...[
+                          const SizedBox(height: 10),
+                          const Text(
+                            'SmartInspect',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  destinations: railDestinations,
+                ),
+              ),
+              Expanded(child: screens[selectedIndex]),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+
+class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  bool loadingProjects = false;
+
+  int get activeProjects {
+    return AppState.projects
+        .where((project) => project.status == 'Active')
+        .length;
+  }
+
+  int get pendingProjects {
+    return AppState.projects
+        .where((project) => project.status == 'Pending')
+        .length;
+  }
+
+  Future<void> loadProjects() async {
+    setState(() {
+      loadingProjects = true;
+    });
+
+    try {
+      final response = await http
+          .get(Uri.parse('${AppConfig.apiBaseUrl}/projects'))
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        if (data is List) {
+          final backendProjects = data
+              .map((item) => Project.fromJson(Map<String, dynamic>.from(item)))
+              .toList();
+
+          if (backendProjects.isNotEmpty) {
+            AppState.projects = backendProjects;
+          }
+        }
+
+        if (!mounted) {
+          return;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Projects synchronized with backend')),
+        );
+      } else {
+        throw Exception('Server returned ${response.statusCode}');
+      }
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Backend unavailable. Showing local project data.'),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          loadingProjects = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('DoSJE Smart Inspection System'),
+        title: const Text(
+          'SmartInspectAI',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          IconButton(
+            onPressed: loadingProjects ? null : loadProjects,
+            icon: loadingProjects
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.sync),
+          ),
+        ],
       ),
-      body: Center(
+      body: RefreshIndicator(
+        onRefresh: loadProjects,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            const Text(
+              'Government Smart Monitoring Dashboard',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 20),
+
+            Row(
+              children: [
+                Expanded(
+                  child: DashboardStatCard(
+                    title: 'Projects',
+                    value: '${AppState.projects.length}',
+                    icon: Icons.business,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DashboardStatCard(
+                    title: 'Active',
+                    value: '$activeProjects',
+                    icon: Icons.check_circle,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+
+            Row(
+              children: [
+                Expanded(
+                  child: DashboardStatCard(
+                    title: 'Pending',
+                    value: '$pendingProjects',
+                    icon: Icons.pending_actions,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DashboardStatCard(
+                    title: 'Reports',
+                    value: '${AppState.reports.length}',
+                    icon: Icons.description,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text(
+              'Quick Actions',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 12),
+
+            ActionCard(
+              title: 'Random Inspection',
+              subtitle: 'Automatically assign a surprise inspection',
+              icon: Icons.shuffle,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RandomInspectionScreen(),
+                  ),
+                );
+              },
+            ),
+
+            ActionCard(
+              title: 'Start Inspection',
+              subtitle: 'Perform a field inspection',
+              icon: Icons.fact_check,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const InspectionDetailsScreen(),
+                  ),
+                );
+              },
+            ),
+
+            ActionCard(
+              title: 'CCTV Monitoring',
+              subtitle: 'Check project CCTV connection',
+              icon: Icons.videocam,
+              onTap: () {
+                if (AppState.projects.isEmpty) {
+                  return;
+                }
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        CctvScreen(project: AppState.projects.first),
+                  ),
+                );
+              },
+            ),
+
+            ActionCard(
+              title: 'Video Conference',
+              subtitle: 'Connect with staff and beneficiaries',
+              icon: Icons.video_call,
+              onTap: () {
+                if (AppState.projects.isEmpty) {
+                  return;
+                }
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        VideoConferenceScreen(project: AppState.projects.first),
+                  ),
+                );
+              },
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text(
+              'Recent Activity',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 12),
+
+            ...AppState.alerts
+                .take(4)
+                .map(
+                  (alert) => Card(
+                    child: ListTile(
+                      leading: const Icon(Icons.notifications),
+                      title: Text(alert.title),
+                      subtitle: Text(alert.message),
+                      trailing: Text(
+                        alert.time,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// DASHBOARD STAT CARD
+// ============================================================
+
+class DashboardStatCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+
+  const DashboardStatCard({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8EDFF),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: const Icon(
+                Icons.insights_rounded,
+                color: AppDesign.primary,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.7,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: AppDesign.muted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(icon, color: AppDesign.muted, size: 19),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// ACTION CARD
+// ============================================================
+
+class ActionCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const ActionCard({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          padding: const EdgeInsets.all(15),
+          child: Row(
             children: [
-              const Icon(
-                Icons.admin_panel_settings,
-                size: 80,
-                color: Colors.blue,
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Centralized Monitoring &\nSurprise Inspection System',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFE8EDFF), Color(0xFFE6F9FC)],
+                  ),
+                  borderRadius: BorderRadius.circular(15),
                 ),
+                child: Icon(icon, color: AppDesign.primary),
               ),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.dashboard),
-                  label: const Text('Official Dashboard'),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const OfficialDashboard(),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
                       ),
-                    );
-                  },
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: AppDesign.muted,
+                        fontSize: 12.5,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 15),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.assignment),
-                  label: const Text('Inspector Dashboard'),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const InspectorDashboard(),
-                      ),
-                    );
-                  },
+              const SizedBox(width: 10),
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF2F4F7),
+                  borderRadius: BorderRadius.circular(11),
                 ),
+                child: const Icon(Icons.arrow_forward_rounded, size: 18),
               ),
             ],
           ),
@@ -106,657 +1258,1126 @@ class HomeScreen extends StatelessWidget {
 }
 
 // ============================================================
-// OFFICIAL DASHBOARD
+// PROJECTS SCREEN
 // ============================================================
 
-class OfficialDashboard extends StatefulWidget {
-  const OfficialDashboard({super.key});
+class ProjectsScreen extends StatefulWidget {
+  const ProjectsScreen({super.key});
 
   @override
-  State<OfficialDashboard> createState() => _OfficialDashboardState();
+  State<ProjectsScreen> createState() => _ProjectsScreenState();
 }
 
-class _OfficialDashboardState extends State<OfficialDashboard> {
-  List<dynamic> projects = [];
-  List<dynamic> inspectors = [];
-  List<dynamic> inspections = [];
+class _ProjectsScreenState extends State<ProjectsScreen> {
+  String searchText = '';
 
-  bool loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    loadDashboard();
-  }
-
-  Future<void> loadDashboard() async {
-    try {
-      final projectResponse =
-          await http.get(Uri.parse('$backendUrl/projects'));
-
-      final inspectorResponse =
-          await http.get(Uri.parse('$backendUrl/inspectors'));
-
-      final inspectionResponse =
-          await http.get(Uri.parse('$backendUrl/inspections'));
-
-      if (projectResponse.statusCode == 200 &&
-          inspectorResponse.statusCode == 200 &&
-          inspectionResponse.statusCode == 200) {
-        if (!mounted) return;
-
-        setState(() {
-          projects = jsonDecode(projectResponse.body);
-          inspectors = jsonDecode(inspectorResponse.body);
-          inspections = jsonDecode(inspectionResponse.body);
-          loading = false;
-        });
-      }
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        loading = false;
-      });
-    }
-  }
-
-  Future<void> assignInspection() async {
-    if (projects.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No projects available'),
-        ),
-      );
-      return;
+  List<Project> get filteredProjects {
+    if (searchText.isEmpty) {
+      return AppState.projects;
     }
 
-    final projectId = projects[0]['id'];
+    final query = searchText.toLowerCase();
 
-    try {
-      final response = await http.post(
-        Uri.parse(
-          '$backendUrl/assign-inspection?project_id=$projectId',
-        ),
-      );
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200 &&
-          data['inspection_id'] != null) {
-        await loadDashboard();
-
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Inspection assigned to ${data['inspector']}',
-            ),
-          ),
-        );
-      } else {
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              data['error'] ?? 'Assignment failed',
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Connection error: $e'),
-        ),
-      );
-    }
-  }
-
-  // ==========================================================
-  // AI ALERT WIDGET
-  // ==========================================================
-
-  Widget buildAIAlert(dynamic inspection) {
-    final aiResult =
-        (inspection['anomaly_result'] ?? '').toString();
-
-    final result = aiResult.toLowerCase();
-
-    Color alertColor;
-    IconData alertIcon;
-    String alertText;
-
-    if (result.contains('pending')) {
-      alertColor = Colors.orange;
-      alertIcon = Icons.pending;
-      alertText = 'AI Analysis Pending';
-    } else if (result.contains('anomaly')) {
-      alertColor = Colors.red;
-      alertIcon = Icons.warning;
-      alertText = 'AI Anomaly Alert';
-    } else {
-      alertColor = Colors.green;
-      alertIcon = Icons.check_circle;
-      alertText = 'No Anomaly Detected';
-    }
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: ListTile(
-        leading: Icon(
-          alertIcon,
-          color: alertColor,
-          size: 32,
-        ),
-        title: Text(
-          alertText,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: alertColor,
-          ),
-        ),
-        subtitle: Text(
-          'Inspection #${inspection['inspection_id']} • '
-          '${inspection['project']}',
-        ),
-        trailing: Text(
-          aiResult,
-          style: TextStyle(
-            color: alertColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
+    return AppState.projects.where((project) {
+      return project.name.toLowerCase().contains(query) ||
+          project.location.toLowerCase().contains(query) ||
+          project.status.toLowerCase().contains(query);
+    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final completed = inspections
-        .where(
-          (item) => item['status'] == 'Completed',
-        )
-        .length;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Official Monitoring Dashboard',
-        ),
-      ),
-      body: loading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : RefreshIndicator(
-              onRefresh: loadDashboard,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  const Text(
-                    'Real-Time Department Monitoring',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+      appBar: AppBar(title: const Text('Projects')),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              decoration: const InputDecoration(
+                hintText: 'Search projects...',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  searchText = value;
+                });
+              },
+            ),
+          ),
 
-                  const SizedBox(height: 20),
+          Expanded(
+            child: filteredProjects.isEmpty
+                ? const Center(child: Text('No projects found'))
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: filteredProjects.length,
+                    itemBuilder: (context, index) {
+                      final project = filteredProjects[index];
 
-                  // ==================================================
-                  // STAT CARDS
-                  // ==================================================
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _StatCard(
-                          title: 'Projects',
-                          value: projects.length.toString(),
-                          icon: Icons.business,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _StatCard(
-                          title: 'Inspectors',
-                          value: inspectors.length.toString(),
-                          icon: Icons.people,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _StatCard(
-                          title: 'Inspections',
-                          value: inspections.length.toString(),
-                          icon: Icons.assignment,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _StatCard(
-                          title: 'Completed',
-                          value: completed.toString(),
-                          icon: Icons.check_circle,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  // ==================================================
-                  // RANDOM INSPECTION
-                  // ==================================================
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.shuffle),
-                      label: const Text(
-                        'Assign Random Inspection',
-                      ),
-                      onPressed: assignInspection,
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // ==================================================
-                  // CCTV
-                  // ==================================================
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.videocam),
-                      label: const Text(
-                        'Open CCTV Monitoring',
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                const CctvMonitoringScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // ==================================================
-                  // VIDEO CONFERENCING
-                  // ==================================================
-
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.video_call),
-                      label: const Text(
-                        'Random Video Conferencing',
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 15,
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                const VideoConferenceScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  // ==================================================
-                  // AI MONITORING ALERTS
-                  // ==================================================
-
-                  const Text(
-                    'AI Monitoring Alerts',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  if (inspections.isEmpty)
-                    const Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text(
-                          'No AI alerts available',
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-
-                  ...inspections.map(
-                    (inspection) {
-                      return buildAIAlert(inspection);
-                    },
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  // ==================================================
-                  // INSPECTION MONITORING
-                  // ==================================================
-
-                  const Text(
-                    'Inspection Monitoring',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  if (inspections.isEmpty)
-                    const Card(
-                      child: Padding(
-                        padding: EdgeInsets.all(20),
-                        child: Text(
-                          'No inspections available',
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-
-                  ...inspections.map(
-                    (inspection) {
                       return Card(
-                        margin: const EdgeInsets.only(
-                          bottom: 12,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(15),
-                          child: Column(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Inspection #${inspection['inspection_id']}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Project: ${inspection['project']}',
-                              ),
-                              Text(
-                                'Location: ${inspection['location']}',
-                              ),
-                              Text(
-                                'Inspector: ${inspection['inspector']}',
-                              ),
-                              Text(
-                                'District: ${inspection['district']}',
-                              ),
-                              Text(
-                                'Status: ${inspection['status']}',
-                              ),
-                              Text(
-                                'GPS: '
-                                '${inspection['latitude'] ?? 'Not available'}, '
-                                '${inspection['longitude'] ?? 'Not available'}',
-                              ),
-                              Text(
-                                'AI Result: '
-                                '${inspection['anomaly_result'] ?? 'Pending'}',
-                              ),
-                            ],
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: ListTile(
+                          leading: CircleAvatar(child: Text('${project.id}')),
+                          title: Text(
+                            project.name,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
+                          subtitle: Text(
+                            '${project.location}\nInspector: ${project.inspector}',
+                          ),
+                          isThreeLine: true,
+                          trailing: Chip(label: Text(project.status)),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    ProjectDetailsScreen(project: project),
+                              ),
+                            );
+                          },
                         ),
                       );
                     },
                   ),
-                ],
-              ),
-            ),
-    );
-  }
-}
-
-// ============================================================
-// STAT CARD
-// ============================================================
-
-class _StatCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-
-  const _StatCard({
-    required this.title,
-    required this.value,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              size: 32,
-              color: Colors.blue,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(title),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
 // ============================================================
-// VIDEO CONFERENCE SCREEN
+// PROJECT DETAILS
 // ============================================================
 
-class VideoConferenceScreen extends StatefulWidget {
-  const VideoConferenceScreen({super.key});
+class ProjectDetailsScreen extends StatelessWidget {
+  final Project project;
+
+  const ProjectDetailsScreen({super.key, required this.project});
 
   @override
-  State<VideoConferenceScreen> createState() =>
-      _VideoConferenceScreenState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Project Details')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    project.name,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  DetailRow(
+                    icon: Icons.location_on,
+                    title: 'Location',
+                    value: project.location,
+                  ),
+                  DetailRow(
+                    icon: Icons.person,
+                    title: 'Inspector',
+                    value: project.inspector,
+                  ),
+                  DetailRow(
+                    icon: Icons.info,
+                    title: 'Status',
+                    value: project.status,
+                  ),
+                  const DetailRow(
+                    icon: Icons.groups,
+                    title: 'Stakeholders',
+                    value: 'Project Incharge / Staff / Beneficiaries',
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          ActionCard(
+            title: 'CCTV Monitoring',
+            subtitle: 'View CCTV monitoring interface',
+            icon: Icons.videocam,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => CctvScreen(project: project)),
+              );
+            },
+          ),
+
+          ActionCard(
+            title: 'Video Conference',
+            subtitle: 'Connect with project stakeholders',
+            icon: Icons.video_call,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => VideoConferenceScreen(project: project),
+                ),
+              );
+            },
+          ),
+
+          ActionCard(
+            title: 'Start Inspection',
+            subtitle: 'Perform field inspection',
+            icon: Icons.fact_check,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const InspectionDetailsScreen(),
+                ),
+              );
+            },
+          ),
+
+          ActionCard(
+            title: 'Inspection Reports',
+            subtitle: 'View completed inspection reports',
+            icon: Icons.description,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ReportsScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-class _VideoConferenceScreenState
-    extends State<VideoConferenceScreen> {
-  String? meetingUrl;
-  String? meetingId;
+// ============================================================
+// DETAIL ROW
+// ============================================================
 
-  void generateRandomMeeting() {
-    final random = Random();
+class DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
 
-    final randomNumber =
-        100000 + random.nextInt(900000);
+  const DetailRow({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
 
-    final id =
-        'DoSJE-SmartInspect-$randomNumber';
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 9),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2F4F7),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 19, color: AppDesign.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                    color: AppDesign.muted,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  value,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-    setState(() {
-      meetingId = id;
-      meetingUrl = 'https://meet.jit.si/$id';
-    });
+// ============================================================
+// INSPECTIONS SCREEN
+// ============================================================
+
+class InspectionsScreen extends StatelessWidget {
+  const InspectionsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Inspections')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          ActionCard(
+            title: 'Random Inspection',
+            subtitle: 'Automatically select a project',
+            icon: Icons.shuffle,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const RandomInspectionScreen(),
+                ),
+              );
+            },
+          ),
+
+          ActionCard(
+            title: 'Mobile Inspection',
+            subtitle: 'GPS + evidence + AI analysis',
+            icon: Icons.phone_android,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const InspectionDetailsScreen(),
+                ),
+              );
+            },
+          ),
+
+          ActionCard(
+            title: 'Completed Reports',
+            subtitle: 'View inspection reports',
+            icon: Icons.description,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ReportsScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// RANDOM INSPECTION
+// ============================================================
+
+class RandomInspectionScreen extends StatefulWidget {
+  const RandomInspectionScreen({super.key});
+
+  @override
+  State<RandomInspectionScreen> createState() => _RandomInspectionScreenState();
+}
+
+class _RandomInspectionScreenState extends State<RandomInspectionScreen> {
+  Project? selectedProject;
+  bool assigning = true;
+
+  @override
+  void initState() {
+    super.initState();
+    assignInspection();
   }
 
-  Future<void> joinMeeting() async {
-    if (meetingUrl == null) {
-      generateRandomMeeting();
+  Future<void> assignInspection() async {
+    await Future.delayed(const Duration(milliseconds: 700));
+
+    if (!mounted) {
       return;
     }
 
-    final uri = Uri.parse(meetingUrl!);
-
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-    } else {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Unable to open video meeting',
-          ),
-        ),
-      );
+    if (AppState.projects.isEmpty) {
+      setState(() {
+        assigning = false;
+      });
+      return;
     }
+
+    final random = Random();
+
+    final project = AppState.projects[random.nextInt(AppState.projects.length)];
+
+    setState(() {
+      selectedProject = project;
+      assigning = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Random Video Conferencing',
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.stretch,
-          children: [
-            const Icon(
-              Icons.video_call,
-              size: 80,
-              color: Colors.green,
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              'Project VC Connectivity',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            const Text(
-              'Connect with Project Incharge, Staff '
-              'or Beneficiaries for real-time monitoring.',
-              textAlign: TextAlign.center,
-            ),
-
-            const SizedBox(height: 30),
-
-            if (meetingId != null)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Generated Meeting ID',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
+      appBar: AppBar(title: const Text('Random Inspection')),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: assigning
+              ? const Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 20),
+                    Text(
+                      'Selecting inspection randomly...',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ],
+                )
+              : selectedProject == null
+              ? const Text('No project available')
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.shuffle, size: 80),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Inspection Assigned',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          children: [
+                            Text(
+                              selectedProject!.name,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 21,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(selectedProject!.location),
+                            Text('Inspector: ${selectedProject!.inspector}'),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      SelectableText(
-                        meetingId!,
-                        style: const TextStyle(
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const InspectionDetailsScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.play_arrow),
+                        label: const Text('START INSPECTION'),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// INSPECTION DETAILS
+// ============================================================
+
+class InspectionDetailsScreen extends StatefulWidget {
+  const InspectionDetailsScreen({super.key});
+
+  @override
+  State<InspectionDetailsScreen> createState() =>
+      _InspectionDetailsScreenState();
+}
+
+class _InspectionDetailsScreenState extends State<InspectionDetailsScreen> {
+  final ImagePicker picker = ImagePicker();
+
+  Position? currentPosition;
+  XFile? evidenceImage;
+
+  bool gpsVerified = false;
+  bool cctvVerified = false;
+  bool staffVerified = false;
+  bool attendanceChecked = false;
+
+  bool gettingGps = false;
+  bool takingPhoto = false;
+  bool aiRunning = false;
+  bool submitting = false;
+
+  int attendance = 0;
+
+  String aiResult = 'Not analyzed';
+
+  Future<void> getLocation() async {
+    setState(() {
+      gettingGps = true;
+    });
+
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled.');
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied) {
+        throw Exception('Location permission denied.');
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Location permission permanently denied.');
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        currentPosition = position;
+        gpsVerified = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('GPS location captured successfully')),
+      );
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('GPS error: $e')));
+    } finally {
+      if (mounted) {
+        setState(() {
+          gettingGps = false;
+        });
+      }
+    }
+  }
+
+  Future<void> captureEvidence() async {
+    setState(() {
+      takingPhoto = true;
+    });
+
+    try {
+      final image = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (image != null) {
+        setState(() {
+          evidenceImage = image;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Inspection evidence captured')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Camera error: $e')));
+    } finally {
+      if (mounted) {
+        setState(() {
+          takingPhoto = false;
+        });
+      }
+    }
+  }
+
+  Future<void> runAI() async {
+    if (evidenceImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Capture inspection evidence first')),
+      );
+      return;
+    }
+
+    setState(() {
+      aiRunning = true;
+      aiResult = 'AI analysis running...';
+    });
+
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) {
+      return;
+    }
+
+    final random = Random();
+    final anomalyDetected = random.nextBool();
+
+    setState(() {
+      aiRunning = false;
+
+      if (anomalyDetected) {
+        aiResult = 'Potential anomaly detected';
+        attendance = 68;
+      } else {
+        aiResult = 'No major anomaly detected';
+        attendance = 94;
+      }
+
+      attendanceChecked = true;
+    });
+  }
+
+  Future<void> submitInspection() async {
+    if (!gpsVerified) {
+      showMessage('Please capture GPS location first.');
+      return;
+    }
+
+    if (evidenceImage == null) {
+      showMessage('Please capture inspection evidence.');
+      return;
+    }
+
+    if (!cctvVerified) {
+      showMessage('Please verify CCTV status.');
+      return;
+    }
+
+    if (!staffVerified) {
+      showMessage('Please verify staff/stakeholder presence.');
+      return;
+    }
+
+    if (!attendanceChecked) {
+      showMessage('Please run attendance/AI analysis.');
+      return;
+    }
+
+    setState(() {
+      submitting = true;
+    });
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (!mounted) {
+      return;
+    }
+
+    final compliance = attendance >= 80 ? 'Compliant' : 'Under Review';
+
+    final outcome = attendance >= 80
+        ? 'Inspection completed successfully'
+        : 'Follow-up recommended';
+
+    final report = InspectionReport(
+      projectName: 'Sunrise Welfare Institute',
+      location: currentPosition == null
+          ? 'Unknown'
+          : '${currentPosition!.latitude.toStringAsFixed(5)}, '
+                '${currentPosition!.longitude.toStringAsFixed(5)}',
+      inspectionDate: '05 Oct 2026',
+      gpsVerified: gpsVerified,
+      evidenceCaptured: evidenceImage != null,
+      cctvVerified: cctvVerified,
+      staffVerified: staffVerified,
+      attendance: attendance,
+      aiResult: aiResult,
+      compliance: compliance,
+      outcome: outcome,
+    );
+
+    AppState.reports.insert(0, report);
+
+    setState(() {
+      submitting = false;
+    });
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => InspectionReportScreen(report: report)),
+    );
+  }
+
+  void showMessage(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Field Inspection')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const Text(
+            'Inspection Verification',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+
+          const SizedBox(height: 16),
+
+          InspectionCheckCard(
+            title: 'GPS Verification',
+            subtitle: gpsVerified
+                ? currentPosition == null
+                      ? 'Location verified'
+                      : '${currentPosition!.latitude.toStringAsFixed(5)}, '
+                            '${currentPosition!.longitude.toStringAsFixed(5)}'
+                : 'Capture current inspection location',
+            icon: Icons.location_on,
+            completed: gpsVerified,
+            buttonText: gettingGps ? 'Getting GPS...' : 'Capture GPS',
+            onPressed: gettingGps ? null : getLocation,
+          ),
+
+          InspectionCheckCard(
+            title: 'Evidence Capture',
+            subtitle: evidenceImage == null
+                ? 'Take inspection evidence photograph'
+                : 'Evidence photo captured',
+            icon: Icons.camera_alt,
+            completed: evidenceImage != null,
+            buttonText: takingPhoto ? 'Opening Camera...' : 'Capture Evidence',
+            onPressed: takingPhoto ? null : captureEvidence,
+          ),
+
+          InspectionCheckCard(
+            title: 'CCTV Verification',
+            subtitle: cctvVerified
+                ? 'CCTV connection verified'
+                : 'Verify project CCTV availability',
+            icon: Icons.videocam,
+            completed: cctvVerified,
+            buttonText: cctvVerified ? 'Verified' : 'Verify CCTV',
+            onPressed: () {
+              setState(() {
+                cctvVerified = !cctvVerified;
+              });
+            },
+          ),
+
+          InspectionCheckCard(
+            title: 'Staff Verification',
+            subtitle: staffVerified
+                ? 'Staff/stakeholder presence verified'
+                : 'Verify staff or project incharge',
+            icon: Icons.groups,
+            completed: staffVerified,
+            buttonText: staffVerified ? 'Verified' : 'Verify Staff',
+            onPressed: () {
+              setState(() {
+                staffVerified = !staffVerified;
+              });
+            },
+          ),
+
+          const SizedBox(height: 12),
+
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.psychology),
+                      SizedBox(width: 10),
+                      Text(
+                        'AI Analysis',
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
 
-            const SizedBox(height: 20),
+                  const SizedBox(height: 12),
 
-            ElevatedButton.icon(
-              icon: const Icon(Icons.shuffle),
-              label: const Text(
-                'Generate Random VC Room',
+                  Text(aiResult, style: const TextStyle(fontSize: 16)),
+
+                  const SizedBox(height: 12),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: aiRunning ? null : runAI,
+                      icon: aiRunning
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.auto_awesome),
+                      label: Text(
+                        aiRunning ? 'Analyzing...' : 'Run AI Analysis',
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              onPressed: generateRandomMeeting,
             ),
+          ),
 
-            const SizedBox(height: 12),
+          const SizedBox(height: 12),
 
-            ElevatedButton.icon(
-              icon: const Icon(
-                Icons.video_camera_front,
-              ),
-              label: const Text(
-                'Join Video Meeting',
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 15,
-                ),
-              ),
-              onPressed: meetingUrl == null
-                  ? null
-                  : joinMeeting,
+          AttendanceCard(attendance: attendance, checked: attendanceChecked),
+
+          const SizedBox(height: 20),
+
+          SizedBox(
+            height: 52,
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: submitting ? null : submitInspection,
+              icon: submitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.send),
+              label: Text(submitting ? 'Submitting...' : 'SUBMIT INSPECTION'),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-            const SizedBox(height: 20),
+// ============================================================
+// INSPECTION CHECK CARD
+// ============================================================
 
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(15),
-                child: Text(
-                  'Demo flow:\n'
-                  'Official → Generate Random VC Room → '
-                  'Share Meeting ID → Project Staff/Beneficiary '
-                  'joins the same room.',
-                  style: TextStyle(
-                    fontSize: 15,
+class InspectionCheckCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final bool completed;
+  final String buttonText;
+  final VoidCallback? onPressed;
+
+  const InspectionCheckCard({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.completed,
+    required this.buttonText,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: completed
+                    ? const Color(0xFFE7F8EF)
+                    : const Color(0xFFE8EDFF),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Icon(
+                completed ? Icons.check_rounded : icon,
+                color: completed ? AppDesign.success : AppDesign.primary,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      color: AppDesign.muted,
+                      height: 1.3,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            completed
+                ? const StatusPill(label: 'VERIFIED', positive: true)
+                : FilledButton(onPressed: onPressed, child: Text(buttonText)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// ATTENDANCE CARD
+// ============================================================
+
+class AttendanceCard extends StatelessWidget {
+  final int attendance;
+  final bool checked;
+
+  const AttendanceCard({
+    super.key,
+    required this.attendance,
+    required this.checked,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final lowAttendance = checked && attendance < 80;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8EDFF),
+                    borderRadius: BorderRadius.circular(13),
+                  ),
+                  child: const Icon(
+                    Icons.groups_rounded,
+                    color: AppDesign.primary,
                   ),
                 ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Attendance Analytics',
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+                  ),
+                ),
+                if (checked)
+                  StatusPill(
+                    label: '$attendance%',
+                    positive: !lowAttendance,
+                    warning: lowAttendance,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              checked
+                  ? '$attendance% attendance detected'
+                  : 'Attendance analysis not completed',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+            if (checked) ...[
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(99),
+                child: LinearProgressIndicator(
+                  minHeight: 9,
+                  value: attendance / 100,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                lowAttendance
+                    ? 'Alert: Attendance is below 80%'
+                    : 'Attendance is within acceptable range',
+                style: TextStyle(
+                  color: lowAttendance ? AppDesign.danger : AppDesign.success,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// INSPECTION REPORT
+// ============================================================
+
+class InspectionReportScreen extends StatelessWidget {
+  final InspectionReport report;
+
+  const InspectionReportScreen({super.key, required this.report});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Inspection Report')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  const Icon(Icons.verified, size: 70),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Inspection Completed',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(report.outcome),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          ReportRow(title: 'Project', value: report.projectName),
+
+          ReportRow(title: 'Location', value: report.location),
+
+          ReportRow(title: 'Date', value: report.inspectionDate),
+
+          ReportRow(
+            title: 'GPS',
+            value: report.gpsVerified ? 'Verified' : 'Not Verified',
+          ),
+
+          ReportRow(
+            title: 'Evidence',
+            value: report.evidenceCaptured ? 'Captured' : 'Missing',
+          ),
+
+          ReportRow(
+            title: 'CCTV',
+            value: report.cctvVerified ? 'Verified' : 'Not Verified',
+          ),
+
+          ReportRow(
+            title: 'Staff',
+            value: report.staffVerified ? 'Verified' : 'Not Verified',
+          ),
+
+          ReportRow(title: 'Attendance', value: '${report.attendance}%'),
+
+          ReportRow(title: 'AI Result', value: report.aiResult),
+
+          ReportRow(title: 'Compliance', value: report.compliance),
+
+          const SizedBox(height: 20),
+
+          SizedBox(
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              icon: const Icon(Icons.arrow_back),
+              label: const Text('BACK'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// REPORT ROW
+// ============================================================
+
+class ReportRow extends StatelessWidget {
+  final String title;
+  final String value;
+
+  const ReportRow({super.key, required this.title, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: AppDesign.muted,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            const SizedBox(width: 18),
+            Flexible(
+              child: Text(
+                value,
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),
           ],
@@ -767,341 +2388,61 @@ class _VideoConferenceScreenState
 }
 
 // ============================================================
-// INSPECTOR DASHBOARD
+// CCTV SCREEN
 // ============================================================
+class CctvScreen extends StatefulWidget {
+  final Project project;
 
-class InspectorDashboard extends StatelessWidget {
-  const InspectorDashboard({super.key});
+  const CctvScreen({super.key, required this.project});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Inspector Dashboard'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const Text(
-            'Inspection Module',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          ElevatedButton.icon(
-            icon: const Icon(Icons.location_on),
-            label: const Text(
-              'GPS & Evidence Capture',
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const EvidenceScreen(),
-                ),
-              );
-            },
-          ),
-
-          const SizedBox(height: 12),
-
-          ElevatedButton.icon(
-            icon: const Icon(Icons.checklist),
-            label: const Text(
-              'Inspection Checklist',
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      const InspectionChecklistScreen(),
-                ),
-              );
-            },
-          ),
-
-          const SizedBox(height: 12),
-
-          ElevatedButton.icon(
-            icon: const Icon(Icons.people),
-            label: const Text('Attendance'),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const AttendanceScreen(),
-                ),
-              );
-            },
-          ),
-
-          const SizedBox(height: 12),
-
-          ElevatedButton.icon(
-            icon: const Icon(Icons.send),
-            label: const Text(
-              'Submit Inspection',
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      const SubmitInspectionScreen(),
-                ),
-              );
-            },
-          ),
-
-          const SizedBox(height: 12),
-
-          ElevatedButton.icon(
-            icon: const Icon(Icons.smart_toy),
-            label: const Text('AI Analysis'),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) =>
-                      const AIAnalysisScreen(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
+  State<CctvScreen> createState() => _CctvScreenState();
 }
 
-// ============================================================
-// EVIDENCE SCREEN
-// ============================================================
+class _CctvScreenState extends State<CctvScreen> {
+  VideoPlayerController? _videoController;
 
-class EvidenceScreen extends StatefulWidget {
-  const EvidenceScreen({super.key});
+  bool connected = false;
+  bool loading = false;
 
-  @override
-  State<EvidenceScreen> createState() =>
-      _EvidenceScreenState();
-}
+  // ----------------------------------------------------------
+  // DEMO CCTV VIDEO
+  // ----------------------------------------------------------
+  //
+  // This is a test video.
+  //
+  // Later we can replace this with your authorized CCTV stream.
+  //
+  static const String demoVideoUrl =
+      'https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4';
 
-class _EvidenceScreenState
-    extends State<EvidenceScreen> {
-  final ImagePicker picker = ImagePicker();
+  // ----------------------------------------------------------
+  // CONNECT CCTV
+  // ----------------------------------------------------------
 
-  XFile? selectedImage;
-  Uint8List? imageBytes;
+  Future<void> connectCctv() async {
+    setState(() {
+      loading = true;
+    });
 
-  String latitude = '';
-  String longitude = '';
-
-  Future<void> getLocation() async {
-    final serviceEnabled =
-        await Geolocator.isLocationServiceEnabled();
-
-    if (!serviceEnabled) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Location service is disabled',
-          ),
-        ),
+    try {
+      final controller = VideoPlayerController.networkUrl(
+        Uri.parse(demoVideoUrl),
       );
 
-      return;
-    }
+      await controller.initialize();
 
-    LocationPermission permission =
-        await Geolocator.checkPermission();
+      await controller.setLooping(true);
+      await controller.play();
 
-    if (permission == LocationPermission.denied) {
-      permission =
-          await Geolocator.requestPermission();
-    }
-
-    if (permission ==
-            LocationPermission.denied ||
-        permission ==
-            LocationPermission.deniedForever) {
-      return;
-    }
-
-    final position =
-        await Geolocator.getCurrentPosition();
-
-    if (!mounted) return;
-
-    setState(() {
-      latitude =
-          position.latitude.toString();
-      longitude =
-          position.longitude.toString();
-    });
-  }
-
-  Future<void> captureImage() async {
-    final image = await picker.pickImage(
-      source: ImageSource.camera,
-    );
-
-    if (image != null) {
-      final bytes = await image.readAsBytes();
-
-      if (!mounted) return;
-
-      setState(() {
-        selectedImage = image;
-        imageBytes = bytes;
-      });
-    }
-  }
-
-  Future<void> selectFromGallery() async {
-    final image = await picker.pickImage(
-      source: ImageSource.gallery,
-    );
-
-    if (image != null) {
-      final bytes = await image.readAsBytes();
-
-      if (!mounted) return;
-
-      setState(() {
-        selectedImage = image;
-        imageBytes = bytes;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('GPS & Evidence'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          ElevatedButton.icon(
-            icon: const Icon(Icons.location_on),
-            label: const Text(
-              'Capture GPS Location',
-            ),
-            onPressed: getLocation,
-          ),
-
-          const SizedBox(height: 10),
-
-          Text(
-            'Latitude: '
-            '${latitude.isEmpty ? 'Not captured' : latitude}',
-          ),
-
-          Text(
-            'Longitude: '
-            '${longitude.isEmpty ? 'Not captured' : longitude}',
-          ),
-
-          const SizedBox(height: 20),
-
-          ElevatedButton.icon(
-            icon: const Icon(Icons.camera_alt),
-            label: const Text(
-              'Capture Evidence Photo',
-            ),
-            onPressed: captureImage,
-          ),
-
-          const SizedBox(height: 10),
-
-          ElevatedButton.icon(
-            icon: const Icon(Icons.photo),
-            label: const Text(
-              'Select Evidence from Gallery',
-            ),
-            onPressed: selectFromGallery,
-          ),
-
-          const SizedBox(height: 20),
-
-          if (imageBytes != null)
-            Image.memory(
-              imageBytes!,
-              height: 300,
-              fit: BoxFit.cover,
-            ),
-
-          if (selectedImage != null)
-            Padding(
-              padding: const EdgeInsets.only(
-                top: 10,
-              ),
-              child: Text(
-                'Evidence: ${selectedImage!.name}',
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-// ============================================================
-// LAPTOP CAMERA SCREEN
-// ============================================================
-
-class LaptopCameraScreen extends StatefulWidget {
-  const LaptopCameraScreen({super.key});
-
-  @override
-  State<LaptopCameraScreen> createState() =>
-      _LaptopCameraScreenState();
-}
-
-class _LaptopCameraScreenState
-    extends State<LaptopCameraScreen> {
-  CameraController? controller;
-  bool loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    initializeCamera();
-  }
-
-  Future<void> initializeCamera() async {
-    try {
-      final cameras = await availableCameras();
-
-      if (cameras.isEmpty) {
-        if (!mounted) return;
-
-        setState(() {
-          loading = false;
-        });
-
+      if (!mounted) {
+        await controller.dispose();
         return;
       }
 
-      controller = CameraController(
-        cameras.first,
-        ResolutionPreset.medium,
-        enableAudio: false,
-      );
-
-      await controller!.initialize();
-
-      if (!mounted) return;
-
       setState(() {
+        _videoController = controller;
+        connected = true;
         loading = false;
       });
     } catch (e) {
@@ -1109,510 +2450,358 @@ class _LaptopCameraScreenState
 
       setState(() {
         loading = false;
+        connected = false;
       });
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('CCTV connection failed: $e')));
     }
   }
 
+  // ----------------------------------------------------------
+  // DISCONNECT CCTV
+  // ----------------------------------------------------------
+
+  Future<void> disconnectCctv() async {
+    await _videoController?.pause();
+    await _videoController?.dispose();
+
+    if (!mounted) return;
+
+    setState(() {
+      _videoController = null;
+      connected = false;
+    });
+  }
+
+  // ----------------------------------------------------------
+  // CLEAN UP
+  // ----------------------------------------------------------
+
   @override
   void dispose() {
-    controller?.dispose();
+    _videoController?.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Camera'),
-      ),
-      body: loading
-          ? const Center(
-              child: CircularProgressIndicator(),
-            )
-          : controller == null ||
-                  !controller!.value.isInitialized
-              ? const Center(
-                  child: Text(
-                    'Camera unavailable',
-                  ),
-                )
-              : CameraPreview(controller!),
-    );
-  }
-}
-
-// ============================================================
-// INSPECTION CHECKLIST
-// ============================================================
-
-class InspectionChecklistScreen
-    extends StatefulWidget {
-  const InspectionChecklistScreen({super.key});
-
-  @override
-  State<InspectionChecklistScreen> createState() =>
-      _InspectionChecklistScreenState();
-}
-
-class _InspectionChecklistScreenState
-    extends State<InspectionChecklistScreen> {
-  final List<String> questions = [
-    'Project facilities are operational',
-    'Beneficiary records are available',
-    'Staff attendance records are maintained',
-    'Project activities are being conducted',
-    'Required infrastructure is available',
-  ];
-
-  final Map<int, String> answers = {};
+  // ----------------------------------------------------------
+  // UI
+  // ----------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
+    final controller = _videoController;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Inspection Checklist',
-        ),
-      ),
-      body: ListView.builder(
+      appBar: AppBar(title: const Text('CCTV Monitoring'), centerTitle: true),
+
+      body: ListView(
         padding: const EdgeInsets.all(16),
-        itemCount: questions.length,
-        itemBuilder: (context, index) {
-          return Card(
-            margin: const EdgeInsets.only(
-              bottom: 12,
-            ),
+        children: [
+          // ==================================================
+          // PROJECT INFORMATION
+          // ==================================================
+
+          Card(
             child: Padding(
-              padding: const EdgeInsets.all(15),
+              padding: const EdgeInsets.all(16),
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${index + 1}. ${questions[index]}',
+                    widget.project.name,
                     style: const TextStyle(
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 12),
+
+                  const SizedBox(height: 6),
+
                   Row(
                     children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            setState(() {
-                              answers[index] = 'Yes';
-                            });
-                          },
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor:
-                                answers[index] == 'Yes'
-                                    ? Colors.green
-                                    : null,
-                            foregroundColor:
-                                answers[index] == 'Yes'
-                                    ? Colors.white
-                                    : null,
-                          ),
-                          child: const Text('Yes'),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            setState(() {
-                              answers[index] = 'No';
-                            });
-                          },
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor:
-                                answers[index] == 'No'
-                                    ? Colors.red
-                                    : null,
-                            foregroundColor:
-                                answers[index] == 'No'
-                                    ? Colors.white
-                                    : null,
-                          ),
-                          child: const Text('No'),
-                        ),
-                      ),
+                      const Icon(Icons.location_on, size: 18),
+                      const SizedBox(width: 5),
+                      Text(widget.project.location),
                     ],
                   ),
                 ],
               ),
             ),
-          );
-        },
-      ),
-    );
-  }
-}
+          ),
 
-// ============================================================
-// ATTENDANCE
-// ============================================================
+          const SizedBox(height: 15),
 
-class AttendanceScreen extends StatefulWidget {
-  const AttendanceScreen({super.key});
+          // ==================================================
+          // CCTV VIDEO
+          // ==================================================
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child: Container(
+              width: double.infinity,
+              height: 230,
+              color: Colors.black,
 
-  @override
-  State<AttendanceScreen> createState() =>
-      _AttendanceScreenState();
-}
+              child:
+                  !connected ||
+                      controller == null ||
+                      !controller.value.isInitialized
+                  // ------------------------------------------
+                  // DISCONNECTED SCREEN
+                  // ------------------------------------------
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          loading ? Icons.sync : Icons.videocam_off,
+                          color: Colors.white,
+                          size: 55,
+                        ),
 
-class _AttendanceScreenState
-    extends State<AttendanceScreen> {
-  final List<String> people = [
-    'Project Incharge',
-    'Staff Member 1',
-    'Staff Member 2',
-    'Beneficiary Representative',
-  ];
+                        const SizedBox(height: 12),
 
-  final Map<String, bool> attendance = {};
+                        Text(
+                          loading
+                              ? 'CONNECTING TO CCTV...'
+                              : 'CCTV DISCONNECTED',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    )
+                  // ------------------------------------------
+                  // VIDEO SCREEN
+                  // ------------------------------------------
+                  : Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        Center(
+                          child: AspectRatio(
+                            aspectRatio: controller.value.aspectRatio,
+                            child: VideoPlayer(controller),
+                          ),
+                        ),
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Attendance'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const Text(
-            'Mark Attendance',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+                        // LIVE INDICATOR
+                        Positioned(
+                          top: 10,
+                          left: 10,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.circle,
+                                  color: Colors.white,
+                                  size: 9,
+                                ),
+                                SizedBox(width: 5),
+                                Text(
+                                  'LIVE',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        // VIDEO CONTROLS
+                        VideoProgressIndicator(
+                          controller,
+                          allowScrubbing: true,
+                          padding: const EdgeInsets.all(8),
+                        ),
+                      ],
+                    ),
             ),
           ),
 
           const SizedBox(height: 15),
 
-          ...people.map(
-            (person) {
-              return Card(
-                child: CheckboxListTile(
-                  title: Text(person),
-                  value:
-                      attendance[person] ?? false,
-                  onChanged: (value) {
-                    setState(() {
-                      attendance[person] =
-                          value ?? false;
-                    });
-                  },
-                ),
-              );
-            },
-          ),
+          // ==================================================
+          // CCTV STATUS
+          // ==================================================
+          Card(
+            child: ListTile(
+              leading: Icon(
+                connected ? Icons.check_circle : Icons.error_outline,
+              ),
 
-          const SizedBox(height: 20),
+              title: Text(
+                connected ? 'CCTV Connected' : 'CCTV Disconnected',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
 
-          ElevatedButton.icon(
-            icon: const Icon(Icons.check),
-            label: const Text(
-              'Save Attendance',
-            ),
-            onPressed: () {
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Attendance saved successfully',
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ============================================================
-// SUBMIT INSPECTION
-// ============================================================
-
-class SubmitInspectionScreen
-    extends StatefulWidget {
-  const SubmitInspectionScreen({super.key});
-
-  @override
-  State<SubmitInspectionScreen> createState() =>
-      _SubmitInspectionScreenState();
-}
-
-class _SubmitInspectionScreenState
-    extends State<SubmitInspectionScreen> {
-  final TextEditingController remarksController =
-      TextEditingController();
-
-  final TextEditingController latitudeController =
-      TextEditingController(
-    text: '22.5726',
-  );
-
-  final TextEditingController longitudeController =
-      TextEditingController(
-    text: '88.3639',
-  );
-
-  final TextEditingController evidenceController =
-      TextEditingController(
-    text: 'inspection_photo_001.jpg',
-  );
-
-  final TextEditingController anomalyController =
-      TextEditingController(
-    text: 'No anomaly detected',
-  );
-
-  final TextEditingController inspectionIdController =
-      TextEditingController(
-    text: '1',
-  );
-
-  bool submitting = false;
-
-  Future<void> submitInspection() async {
-    setState(() {
-      submitting = true;
-    });
-
-    try {
-      final id =
-          inspectionIdController.text.trim();
-
-      final uri = Uri.parse(
-        '$backendUrl/inspections/$id',
-      ).replace(
-        queryParameters: {
-          'remarks': remarksController.text,
-          'latitude': latitudeController.text,
-          'longitude': longitudeController.text,
-          'evidence': evidenceController.text,
-          'anomaly_result':
-              anomalyController.text,
-        },
-      );
-
-      final response =
-          await http.put(uri);
-
-      if (!mounted) return;
-
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Inspection submitted successfully',
-            ),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Inspection submission failed',
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-        SnackBar(
-          content: Text(
-            'Error: $e',
-          ),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          submitting = false;
-        });
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    remarksController.dispose();
-    latitudeController.dispose();
-    longitudeController.dispose();
-    evidenceController.dispose();
-    anomalyController.dispose();
-    inspectionIdController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Submit Inspection',
-        ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          TextField(
-            controller: inspectionIdController,
-            decoration: const InputDecoration(
-              labelText: 'Inspection ID',
-              border: OutlineInputBorder(),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          TextField(
-            controller: remarksController,
-            decoration: const InputDecoration(
-              labelText: 'Remarks',
-              border: OutlineInputBorder(),
-            ),
-            maxLines: 3,
-          ),
-
-          const SizedBox(height: 12),
-
-          TextField(
-            controller: latitudeController,
-            decoration: const InputDecoration(
-              labelText: 'Latitude',
-              border: OutlineInputBorder(),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          TextField(
-            controller: longitudeController,
-            decoration: const InputDecoration(
-              labelText: 'Longitude',
-              border: OutlineInputBorder(),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          TextField(
-            controller: evidenceController,
-            decoration: const InputDecoration(
-              labelText: 'Evidence',
-              border: OutlineInputBorder(),
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          TextField(
-            controller: anomalyController,
-            decoration: const InputDecoration(
-              labelText: 'AI Anomaly Result',
-              border: OutlineInputBorder(),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          ElevatedButton.icon(
-            icon: submitting
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child:
-                        CircularProgressIndicator(
-                      strokeWidth: 2,
-                    ),
-                  )
-                : const Icon(Icons.send),
-            label: Text(
-              submitting
-                  ? 'Submitting...'
-                  : 'Submit Inspection',
-            ),
-            onPressed:
-                submitting
-                    ? null
-                    : submitInspection,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ============================================================
-// AI ANALYSIS
-// ============================================================
-
-class AIAnalysisScreen
-    extends StatelessWidget {
-  const AIAnalysisScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('AI Analysis'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            const Icon(
-              Icons.smart_toy,
-              size: 80,
-              color: Colors.blue,
-            ),
-
-            const SizedBox(height: 20),
-
-            const Text(
-              'AI-Based Inspection Analysis',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+              subtitle: Text(
+                connected
+                    ? 'Live monitoring stream is active'
+                    : 'No CCTV stream connected',
               ),
             ),
+          ),
 
-            const SizedBox(height: 20),
+          const SizedBox(height: 10),
 
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(20),
+          // ==================================================
+          // CONNECT / DISCONNECT BUTTON
+          // ==================================================
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: FilledButton.icon(
+              onPressed: loading
+                  ? null
+                  : connected
+                  ? disconnectCctv
+                  : connectCctv,
+
+              icon: Icon(connected ? Icons.stop_circle : Icons.play_circle),
+
+              label: Text(
+                connected
+                    ? 'DISCONNECT CCTV'
+                    : loading
+                    ? 'CONNECTING...'
+                    : 'CONNECT CCTV',
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // ==================================================
+          // CCTV INFORMATION
+          // ==================================================
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'CCTV Monitoring',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  const Text('Current mode: Demonstration CCTV stream'),
+
+                  const SizedBox(height: 12),
+
+                  const Text(
+                    'Production architecture:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  const Text(
+                    'CCTV Camera → DVR/NVR → Secure Streaming Gateway → FastAPI → Flutter',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// VIDEO CONFERENCE
+// ============================================================
+
+class VideoConferenceScreen extends StatefulWidget {
+  final Project project;
+
+  const VideoConferenceScreen({super.key, required this.project});
+
+  @override
+  State<VideoConferenceScreen> createState() => _VideoConferenceScreenState();
+}
+
+class _VideoConferenceScreenState extends State<VideoConferenceScreen> {
+  bool connected = false;
+  String participant = '';
+
+  Future<void> connect() async {
+    setState(() {
+      connected = true;
+      participant = 'Project Incharge';
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Connecting to stakeholder...')),
+    );
+
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Video conference connected')));
+  }
+
+  void disconnect() {
+    setState(() {
+      connected = false;
+      participant = '';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Video Conference')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Card(
+              child: Container(
+                width: double.infinity,
+                height: 300,
+                alignment: Alignment.center,
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Icon(
+                      connected ? Icons.video_call : Icons.video_call_outlined,
+                      size: 80,
+                    ),
+                    const SizedBox(height: 16),
                     Text(
-                      'Current AI Result',
-                      style: TextStyle(
-                        fontWeight:
-                            FontWeight.bold,
+                      connected ? 'CONNECTED' : 'NOT CONNECTED',
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 10),
-                    Text(
-                      'No anomaly detected',
-                      style: TextStyle(
-                        fontSize: 20,
-                        color: Colors.green,
-                        fontWeight:
-                            FontWeight.bold,
-                      ),
-                    ),
+                    if (connected) ...[
+                      const SizedBox(height: 10),
+                      Text(participant, style: const TextStyle(fontSize: 17)),
+                    ],
+                    const SizedBox(height: 8),
+                    Text(widget.project.name),
                   ],
                 ),
               ),
@@ -1620,23 +2809,27 @@ class AIAnalysisScreen
 
             const SizedBox(height: 20),
 
-            ElevatedButton.icon(
-              icon: const Icon(
-                Icons.analytics,
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: connected ? disconnect : connect,
+                icon: Icon(connected ? Icons.call_end : Icons.video_call),
+                label: Text(connected ? 'END CALL' : 'START VIDEO CALL'),
               ),
-              label: const Text(
-                'Run AI Analysis',
+            ),
+
+            const SizedBox(height: 20),
+
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Production deployment can integrate WebRTC, '
+                  'Jitsi or an approved government video '
+                  'conference infrastructure.',
+                ),
               ),
-              onPressed: () {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'AI analysis completed',
-                    ),
-                  ),
-                );
-              },
             ),
           ],
         ),
@@ -1646,181 +2839,170 @@ class AIAnalysisScreen
 }
 
 // ============================================================
-// CCTV MONITORING
+// ALERTS SCREEN
 // ============================================================
 
-class CctvMonitoringScreen
-    extends StatefulWidget {
-  const CctvMonitoringScreen({
-    super.key,
-  });
+class AlertsScreen extends StatelessWidget {
+  const AlertsScreen({super.key});
 
   @override
-  State<CctvMonitoringScreen> createState() =>
-      _CctvMonitoringScreenState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Alerts')),
+      body: AppState.alerts.isEmpty
+          ? const Center(child: Text('No alerts'))
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: AppState.alerts.length,
+              itemBuilder: (context, index) {
+                final alert = AppState.alerts[index];
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ListTile(
+                    leading: const CircleAvatar(child: Icon(Icons.warning)),
+                    title: Text(
+                      alert.title,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text('${alert.message}\n${alert.time}'),
+                    isThreeLine: true,
+                    trailing: Chip(label: Text(alert.severity)),
+                  ),
+                );
+              },
+            ),
+    );
+  }
 }
 
-class _CctvMonitoringScreenState
-    extends State<CctvMonitoringScreen> {
-  CameraController? controller;
+// ============================================================
+// REPORTS SCREEN
+// ============================================================
 
-  bool loading = true;
-  bool monitoring = false;
-
-  @override
-  void initState() {
-    super.initState();
-    initializeCamera();
-  }
-
-  Future<void> initializeCamera() async {
-    try {
-      final cameras =
-          await availableCameras();
-
-      if (cameras.isEmpty) {
-        if (!mounted) return;
-
-        setState(() {
-          loading = false;
-        });
-
-        return;
-      }
-
-      controller = CameraController(
-        cameras.first,
-        ResolutionPreset.medium,
-        enableAudio: false,
-      );
-
-      await controller!.initialize();
-
-      if (!mounted) return;
-
-      setState(() {
-        loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-
-      setState(() {
-        loading = false;
-      });
-    }
-  }
-
-  void startMonitoring() {
-    setState(() {
-      monitoring = true;
-    });
-  }
-
-  void stopMonitoring() {
-    setState(() {
-      monitoring = false;
-    });
-  }
+class ReportsScreen extends StatelessWidget {
+  const ReportsScreen({super.key});
 
   @override
-  void dispose() {
-    controller?.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Inspection Reports')),
+      body: AppState.reports.isEmpty
+          ? const Center(child: Text('No inspection reports'))
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: AppState.reports.length,
+              itemBuilder: (context, index) {
+                final report = AppState.reports[index];
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ListTile(
+                    leading: const CircleAvatar(child: Icon(Icons.description)),
+                    title: Text(
+                      report.projectName,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      '${report.inspectionDate}\n'
+                      'Attendance: ${report.attendance}%\n'
+                      '${report.compliance}',
+                    ),
+                    isThreeLine: true,
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              InspectionReportScreen(report: report),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
+
+// ============================================================
+// PROFILE SCREEN
+// ============================================================
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
+  void logout(BuildContext context) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'CCTV Monitoring',
-        ),
-      ),
-      body: loading
-          ? const Center(
-              child:
-                  CircularProgressIndicator(),
-            )
-          : controller == null ||
-                  !controller!
-                      .value
-                      .isInitialized
-              ? const Center(
-                  child: Text(
-                    'Camera unavailable',
+      appBar: AppBar(title: const Text('Profile')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const Card(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  CircleAvatar(radius: 45, child: Icon(Icons.person, size: 50)),
+                  SizedBox(height: 16),
+                  Text(
+                    'Inspection Officer',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-                )
-              : Column(
-                  children: [
-                    Expanded(
-                      child: CameraPreview(
-                        controller!,
-                      ),
-                    ),
+                  SizedBox(height: 5),
+                  Text('DoSJE SmartInspectAI'),
+                ],
+              ),
+            ),
+          ),
 
-                    Padding(
-                      padding:
-                          const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment
-                                    .center,
-                            children: [
-                              Icon(
-                                Icons.circle,
-                                color: monitoring
-                                    ? Colors.red
-                                    : Colors.grey,
-                                size: 14,
-                              ),
-                              const SizedBox(
-                                width: 8,
-                              ),
-                              Text(
-                                monitoring
-                                    ? 'CCTV Monitoring Active'
-                                    : 'CCTV Monitoring Stopped',
-                                style:
-                                    const TextStyle(
-                                  fontWeight:
-                                      FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
+          const SizedBox(height: 16),
 
-                          const SizedBox(
-                            height: 15,
-                          ),
-
-                          SizedBox(
-                            width:
-                                double.infinity,
-                            child:
-                                ElevatedButton
-                                    .icon(
-                              icon: Icon(
-                                monitoring
-                                    ? Icons.stop
-                                    : Icons.play_arrow,
-                              ),
-                              label: Text(
-                                monitoring
-                                    ? 'Stop CCTV Monitoring'
-                                    : 'Start CCTV Monitoring',
-                              ),
-                              onPressed: monitoring
-                                  ? stopMonitoring
-                                  : startMonitoring,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+          const Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: Icon(Icons.account_balance),
+                  title: Text('Department'),
+                  subtitle: Text('Department of Social Justice & Empowerment'),
                 ),
+                ListTile(
+                  leading: Icon(Icons.security),
+                  title: Text('Role'),
+                  subtitle: Text('Inspection Officer'),
+                ),
+                ListTile(
+                  leading: Icon(Icons.analytics),
+                  title: Text('Platform'),
+                  subtitle: Text('Smart Monitoring and AI Analytics'),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          SizedBox(
+            height: 50,
+            child: ElevatedButton.icon(
+              onPressed: () => logout(context),
+              icon: const Icon(Icons.logout),
+              label: const Text('LOGOUT'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
